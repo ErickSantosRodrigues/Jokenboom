@@ -4,4 +4,5 @@ build/
 game
 server
 client
-
+*.json
+.cache/
