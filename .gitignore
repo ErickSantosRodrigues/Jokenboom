@@ -1,0 +1,7 @@
+build/
+*.exe
+*.elf
+game
+server
+client
+
