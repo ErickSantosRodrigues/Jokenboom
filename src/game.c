@@ -1,13 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-
-
-#define NUCLEAR_ATTACK 0 
-#define INTERCEPT_ATTACK 1
-#define CYBER_ATTACK 2
-#define DRONE_STRIKE 3
-#define BIO_ATTACK 4
-
+#include "game.h"
 
 int generate_response() {
   return rand() % 5;
