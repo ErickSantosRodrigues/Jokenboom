@@ -13,7 +13,7 @@ SERVER_OBJ := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SERVER_SRC:.$(SRCEXT)=.o))
 CLIENT_OBJ := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(CLIENT_SRC:.$(SRCEXT)=.o))
 GAME_OBJ   := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(GAME_SRC:.$(SRCEXT)=.o))
 
-TARGETS := server client game
+TARGETS := server client 
 
 all: $(TARGETS)
 
@@ -23,8 +23,6 @@ server: $(SERVER_OBJ)
 client: $(CLIENT_OBJ)
 	$(CC) $^ -o $@
 
-game: $(GAME_OBJ)
-	$(CC) $^ -o $@
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 	@mkdir -p $(@D)

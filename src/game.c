@@ -3,6 +3,10 @@
 int generate_response() {
   return rand() % 5;
 }
+void logexit(const char *msg) {
+	perror(msg);
+	exit(EXIT_FAILURE);
+}
 
 // retorna o valor do ponto de vista do cliente
 // -1 : Derrota, 0: Empate, 1: Vitoria
@@ -98,7 +102,7 @@ char* attack_name(int attack) {
   
   }
 }
-int main() {
+/*int main() {
   int test = 0;
   char* s_attack;
   char* c_attack;
@@ -111,4 +115,4 @@ int main() {
       printf("RESULT: %d\n", battle(DRONE_STRIKE, test));
       
   }
-}
+}*/
