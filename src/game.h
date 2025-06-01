@@ -43,3 +43,5 @@ char* attack_name(int attack);
 
 // Common functions
 void logexit(const char *msg);
+int send_gm(int sockfd, const GameMessage* gmsg);
+GameMessage receive_gm(int sockfd);

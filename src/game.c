@@ -102,6 +102,18 @@ char* attack_name(int attack) {
   
   }
 }
+
+int send_gm(int sockfd, const GameMessage* gmsg) {
+  if (-1 == send(sockfd, gmsg, sizeof(GameMessage), 0))
+    return -1;
+  return 0;
+}
+GameMessage receive_gm(int sockfd) {
+  GameMessage gmsg;
+  if (-1 == recv(sockfd, &gmsg, sizeof(GameMessage), 0))
+    gmsg.type = MSG_ERROR;
+  return gmsg;
+}
 /*int main() {
   int test = 0;
   char* s_attack;

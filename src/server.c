@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
   if (0 != bind(s, addr, sizeof(storage))) 
     logexit("bind");
 
-  if (0 != listen(s, 10)) 
+  if (0 != listen(s, 1)) 
     logexit("listen");
   
 printf("Servidor iniciado em modo IP%s na porta %s Aguardando conexão...\n", argv[1], argv[2]);
@@ -68,22 +68,55 @@ printf("Servidor iniciado em modo IP%s na porta %s Aguardando conexão...\n", ar
     struct sockaddr *caddr = (struct sockaddr *)(&cstorage);
     socklen_t caddrlen = sizeof(cstorage);
 
-    int csock = accept(s, caddr, &caddrlen);
-    if (csock == -1) 
+    int c = accept(s, caddr, &caddrlen);
+    if (c == -1) 
       logexit("accept");
 
     printf("Cliente conectado\n");
-
+	// plataforma para a troca de mensagens
+    GameMessage gmsg;
     char buf[MSG_SIZE];
+    strcpy(gmsg.message, "Escolha sua jogada:\n\n");
+    strcat(gmsg.message, "0 - Nuclear Attack\n");
+    strcat(gmsg.message, "1 - Intercept Attack\n");
+    strcat(gmsg.message, "2 - Cyber Attack\n");
+    strcat(gmsg.message, "3 - Drone Strike\n");
+    strcat(gmsg.message, "4 - Bio Attack\n");
+    send_gm(c, &gmsg);
+    printf("Apresentando as opções para o cliente.\n");
+    
+    gmsg = receive_gm(c);
+    int c_attack, s_attack, result;
+    printf("Cliente escolheu %s\n", gmsg.message);
+    s_attack = generate_response();
+    printf("Server escolheu aleatoriamente %d \n", s_attack);
+    c_attack = atoi(gmsg.message);
+    result = battle(s_attack, c_attack);
+    switch(result) {
+      case -1:
+        printf("Cliente perdeu\n");
+        strcpy(gmsg.message,"Cliente perdeu\n");
+        break;
+      case 0:
+        printf("Empate\n");
+        strcpy(gmsg.message,"Empate\n");
+        break;
+      case 1:
+        printf("Cliente ganhou\n");
+        strcpy(gmsg.message, "Cliente ganhou\n");
+        break;
+    }
+    send_gm(c, &gmsg);
+    
     memset(buf, 0, MSG_SIZE);
-    size_t count = recv(csock, buf, MSG_SIZE - 1, 0);
+    size_t count = recv(c, buf, MSG_SIZE - 1, 0);
     printf("[msg] , %d bytes: %s\n", (int)count, buf);
 
     sprintf(buf, "recebido\n");
-    count = send(csock, buf, strlen(buf) + 1, 0);
+    count = send(c, buf, strlen(buf) + 1, 0);
     if (count != strlen(buf) + 1) 
         logexit("send");
-    close(csock);
+    close(c);
   }
 
   exit(EXIT_SUCCESS);

@@ -8,7 +8,6 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
-#define BUFSZ 1024
 void usage(int argc, char** argv) {
   printf("usage: %s <ipv4/ipv6> <port>\n", argv[0]);
   exit(EXIT_FAILURE);
@@ -63,23 +62,30 @@ if (argc < 3)
 		logexit("connect");
 	
 	printf("Conectado ao Servidor\n");
-
-	char buf[BUFSZ];
-	memset(buf, 0, BUFSZ);
+	// plataforma para a troca de mensagens
+  GameMessage gmsg;
+	char buf[MSG_SIZE];
+	gmsg = receive_gm(s);
+	
+	printf("%s", gmsg.message);
+	memset(buf, 0, MSG_SIZE);
 	printf("mensagem> ");
-	fgets(buf, BUFSZ-1, stdin);
-	size_t count = send(s, buf, strlen(buf)+1, 0);
+	fgets(gmsg.message, MSG_SIZE-1, stdin);
+	send_gm(s, &gmsg);
+	gmsg = receive_gm(s);
+	printf("%s", gmsg.message);
+	/*size_t count = send(s, buf, strlen(buf)+1, 0);
 	if (count != strlen(buf)+1)
 		logexit("send");
 	
-	memset(buf, 0, BUFSZ);
+	memset(buf, 0, MSG_SIZE);
 	unsigned total = 0;
 	while(1) {
-		count = recv(s, buf + total, BUFSZ - total, 0);
+		count = recv(s, buf + total, MSG_SIZE - total, 0);
 		if (count == 0)
 			break;
 		total += count;
-	}
+	}*/
 	close(s);
 	puts(buf);
 
