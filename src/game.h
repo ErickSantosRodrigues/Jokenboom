@@ -1,11 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <stddef.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <inttypes.h>
+
+
 #define MSG_SIZE 256
+
 typedef enum {
 MSG_REQUEST,
 MSG_RESPONSE,
@@ -36,5 +39,7 @@ char message[MSG_SIZE];
 int generate_response(); 
 int battle(int s_attack, int c_attack);
 char* attack_name(int attack);
+
+
+// Common functions
 void logexit(const char *msg);
-int server_init(const char *proto, const char *portstr, struct sockaddr_storage *storage); 
