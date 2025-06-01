@@ -64,30 +64,50 @@ if (argc < 3)
 	printf("Conectado ao Servidor\n");
 	// plataforma para a troca de mensagens
   GameMessage gmsg;
-	char buf[MSG_SIZE];
-	gmsg = receive_gm(s);
+  while(1) {
+  	gmsg = receive_gm(s);
+  	switch(gmsg.type) {
+  	  case MSG_REQUEST:
+      	printf("%s", gmsg.message);
+      	fgets(gmsg.message, MSG_SIZE-1, stdin);
+      	gmsg.client_action = atoi(gmsg.message);
+      	gmsg.type = MSG_RESPONSE;
+      	send_gm(s, &gmsg);
+      	break;
+    	case MSG_ERROR:
+    	  printf("%s", gmsg.message);
+    	  break;
+    	case MSG_RESULT:
+    	  printf("%s", gmsg.message);
+    	  break;
+    	case MSG_PLAY_AGAIN_REQUEST:
+    	  printf("%s", gmsg.message);
+      	fgets(gmsg.message, MSG_SIZE-1, stdin);
+      	gmsg.client_action = atoi(gmsg.message);
+      	gmsg.type = MSG_PLAY_AGAIN_RESPONSE;
+      	send_gm(s, &gmsg);
+      	break;
+    	case MSG_END:
+    	  printf("%s", gmsg.message);
+        break;    	  
+  	}
+  	// solicitação para finalizar conexão com o servidor
+    if (gmsg.type  == MSG_END)
+      break;
+  	/*size_t count = send(s, buf, strlen(buf)+1, 0);
+  	if (count != strlen(buf)+1)
+  		logexit("send");
 	
-	printf("%s", gmsg.message);
-	memset(buf, 0, MSG_SIZE);
-	printf("mensagem> ");
-	fgets(gmsg.message, MSG_SIZE-1, stdin);
-	send_gm(s, &gmsg);
-	gmsg = receive_gm(s);
-	printf("%s", gmsg.message);
-	/*size_t count = send(s, buf, strlen(buf)+1, 0);
-	if (count != strlen(buf)+1)
-		logexit("send");
-	
-	memset(buf, 0, MSG_SIZE);
-	unsigned total = 0;
-	while(1) {
-		count = recv(s, buf + total, MSG_SIZE - total, 0);
-		if (count == 0)
-			break;
-		total += count;
-	}*/
+  	memset(buf, 0, MSG_SIZE);
+  	unsigned total = 0;
+  	while(1) {
+  		count = recv(s, buf + total, MSG_SIZE - total, 0);
+  		if (count == 0)
+  			break;
+  		total += count;
+  	}*/
+	}
 	close(s);
-	puts(buf);
 
 	exit(EXIT_SUCCESS);  
 }

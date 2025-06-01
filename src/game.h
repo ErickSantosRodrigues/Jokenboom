@@ -5,7 +5,8 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <inttypes.h>
-
+#include <string.h>
+#include <unistd.h>
 
 #define MSG_SIZE 256
 
@@ -39,9 +40,11 @@ char message[MSG_SIZE];
 int generate_response(); 
 int battle(int s_attack, int c_attack);
 char* attack_name(int attack);
+char* result_name(int result);
 
 
 // Common functions
 void logexit(const char *msg);
 int send_gm(int sockfd, const GameMessage* gmsg);
 GameMessage receive_gm(int sockfd);
+void server_msg(int id, char* msg);

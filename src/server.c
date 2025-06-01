@@ -75,48 +75,105 @@ printf("Servidor iniciado em modo IP%s na porta %s Aguardando conexão...\n", ar
     printf("Cliente conectado\n");
 	// plataforma para a troca de mensagens
     GameMessage gmsg;
-    char buf[MSG_SIZE];
-    strcpy(gmsg.message, "Escolha sua jogada:\n\n");
-    strcat(gmsg.message, "0 - Nuclear Attack\n");
-    strcat(gmsg.message, "1 - Intercept Attack\n");
-    strcat(gmsg.message, "2 - Cyber Attack\n");
-    strcat(gmsg.message, "3 - Drone Strike\n");
-    strcat(gmsg.message, "4 - Bio Attack\n");
-    send_gm(c, &gmsg);
-    printf("Apresentando as opções para o cliente.\n");
+    //gamestatus
+    int c_attack = 0, s_attack = 0, result = 0, v_s = 0, v_c = 0;
+    // loop principal do game
+    while(1) {
+      server_msg(1, gmsg.message);
+      gmsg.type = MSG_REQUEST;
+      if (0 != send_gm(c, &gmsg))
+          logexit("MSG_REQUEST");
+      printf("Apresentando as opções para o cliente.\n");
     
-    gmsg = receive_gm(c);
-    int c_attack, s_attack, result;
-    printf("Cliente escolheu %s\n", gmsg.message);
-    s_attack = generate_response();
-    printf("Server escolheu aleatoriamente %d \n", s_attack);
-    c_attack = atoi(gmsg.message);
-    result = battle(s_attack, c_attack);
-    switch(result) {
-      case -1:
-        printf("Cliente perdeu\n");
-        strcpy(gmsg.message,"Cliente perdeu\n");
-        break;
-      case 0:
-        printf("Empate\n");
-        strcpy(gmsg.message,"Empate\n");
-        break;
-      case 1:
-        printf("Cliente ganhou\n");
-        strcpy(gmsg.message, "Cliente ganhou\n");
-        break;
-    }
-    send_gm(c, &gmsg);
-    
-    memset(buf, 0, MSG_SIZE);
-    size_t count = recv(c, buf, MSG_SIZE - 1, 0);
-    printf("[msg] , %d bytes: %s\n", (int)count, buf);
+      gmsg = receive_gm(c);
+      c_attack = gmsg.client_action;
 
-    sprintf(buf, "recebido\n");
-    count = send(c, buf, strlen(buf) + 1, 0);
-    if (count != strlen(buf) + 1) 
-        logexit("send");
+      printf("Cliente escolheu %s\n", gmsg.message);
+      if (c_attack < 0 || c_attack > 4) {
+        printf("Erro: escolha inválida de jogada\n");
+        gmsg.type = MSG_ERROR;
+        server_msg(3, gmsg.message);
+        if (0 != send_gm(c, &gmsg))
+            logexit("MSG_ERROR");
+        continue;
+      }
+      s_attack = generate_response();
+      printf("Server escolheu aleatoriamente %d \n", s_attack);
+      result = battle(s_attack, c_attack);
+      snprintf(gmsg.message, sizeof(gmsg.message), 
+               "Você escolheu %s\nServidor escolheu: %s\nResultado: %s\n", 
+               attack_name(c_attack), attack_name(s_attack), result_name(result));
+      switch(result) {
+        case -1:
+          v_s += 1;
+          printf("Cliente perdeu\n");
+          break;
+        case 0:
+          printf("Empate\n");
+          break;
+        case 1:
+          v_c += 1;
+          printf("Cliente ganhou\n");
+          break;
+      }
+      printf("Placar atualizado: Cliente %d x %d Servidor\n", v_c, v_s);
+      gmsg.client_action = c_attack;
+      gmsg.server_action = s_attack;
+      gmsg.result = result;
+      gmsg.type = MSG_RESULT;
+      if (0 != send_gm(c, &gmsg))
+        logexit("MSG_RESULT");
+      // Empate
+      if (0 == result)
+        continue;
+      while(1) {
+        server_msg(2, gmsg.message);
+        gmsg.type = MSG_PLAY_AGAIN_REQUEST;
+        printf("Perguntando se o cliente deseja jogar novamente.\n");
+        if (0 != send_gm(c, &gmsg))
+          logexit("MSG_PLAY_AGAIN_REQUEST");
+        gmsg = receive_gm(c);
+        if (MSG_PLAY_AGAIN_RESPONSE != gmsg.type)
+          logexit("MSG_PLAY_AGAIN_RESPONSE");
+        if (gmsg.client_action < 0 || gmsg.client_action > 1){
+          gmsg.type = MSG_ERROR;
+          server_msg(4, gmsg.message);
+          if (0 != send_gm(c, &gmsg))
+            logexit("MSG_ERROR");
+        }
+        else
+          break;
+      }
+      // encerramento
+      if (0 == gmsg.client_action) 
+        break;
+      printf("Cliente deseja jogar novamente.\n");
+      // caso contrário continua
+
+    
+      /*memset(buf, 0, MSG_SIZE);
+      size_t count = recv(c, buf, MSG_SIZE - 1, 0);
+      printf("[msg] , %d bytes: %s\n", (int)count, buf);
+
+      sprintf(buf, "recebido\n");
+      count = send(c, buf, strlen(buf) + 1, 0);
+      if (count != strlen(buf) + 1) 
+          logexit("send");
+    }*/
+    }
+    printf("Cliente não deseja jogar novamente\n");
+    gmsg.type = MSG_END;
+    gmsg.client_wins = v_c;
+    gmsg.server_wins = v_s;
+    printf("Enviando placar final.\n");
+    snprintf(gmsg.message, sizeof(gmsg.message),
+              "Fim de jogo!\nPlacar final: Você %d x %d Servidor\nObrigado por jogar!\n",
+               v_c, v_s);
+    if (0 != send_gm(c, &gmsg))
+      logexit("MSG_END");
+    printf("Encerrando conexão.\n");
     close(c);
+    printf("Cliente desconectado.\n");
   }
 
   exit(EXIT_SUCCESS);

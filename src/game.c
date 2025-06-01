@@ -1,4 +1,5 @@
 #include "game.h"
+#include <string.h>
 
 int generate_response() {
   return rand() % 5;
@@ -102,6 +103,22 @@ char* attack_name(int attack) {
   
   }
 }
+char* result_name(int result) {
+  switch(result) {
+    case -1:
+      return "Derrota!";
+      break;
+    case 0:
+      return "Empate!";
+      break;
+    case 1:
+      return "Vitória";
+      break;
+    default:
+      return "ERROR";
+      break;
+  }
+}
 
 int send_gm(int sockfd, const GameMessage* gmsg) {
   if (-1 == send(sockfd, gmsg, sizeof(GameMessage), 0))
@@ -114,6 +131,38 @@ GameMessage receive_gm(int sockfd) {
     gmsg.type = MSG_ERROR;
   return gmsg;
 }
+
+//Compila todas as mesagens de resposta do server
+//id: numeração da mensagem, msg: endereço onde será armazenada
+void server_msg(int id, char* msg) {
+  switch (id) {
+    case 1:
+      strcpy(msg, "Escolha sua jogada:\n\n");
+      strcat(msg, "0 - Nuclear Attack\n");
+      strcat(msg, "1 - Intercept Attack\n");
+      strcat(msg, "2 - Cyber Attack\n");
+      strcat(msg, "3 - Drone Strike\n");
+      strcat(msg, "4 - Bio Attack\n");
+    break;
+    case 2:
+      strcpy(msg, "Deseja jogar novamente?\n\n");
+      strcat(msg, "1 - Sim\n");
+      strcat(msg, "0 - Não\n");
+      break;
+    case 3:
+      strcpy(msg, "Por favor, selecione um valor de 0 a 4.\n");
+      break;
+    case 4:
+      strcpy(msg, "Por favor, digite 1 para jogar novamente ou 0 para encerrar.\n");
+      break;
+
+    default:
+      strcpy(msg, "ID de mensagem não encotrado\n");
+    break;
+  }
+}
+// @TODO: server_msg que pode receber parametros
+
 /*int main() {
   int test = 0;
   char* s_attack;
