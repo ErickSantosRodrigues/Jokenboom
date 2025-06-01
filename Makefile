@@ -1,6 +1,7 @@
 CC := gcc
 SRCDIR := src
 BUILDDIR := build
+BINDIR := bin
 
 SRCEXT := c
 INC := -I include/ -I third_party/
@@ -13,14 +14,16 @@ SERVER_OBJ := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SERVER_SRC:.$(SRCEXT)=.o))
 CLIENT_OBJ := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(CLIENT_SRC:.$(SRCEXT)=.o))
 GAME_OBJ   := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(GAME_SRC:.$(SRCEXT)=.o))
 
-TARGETS := server client 
+TARGETS := $(BINDIR)/server $(BINDIR)/client 
 
 all: $(TARGETS)
 
-server: $(SERVER_OBJ)
+$(BINDIR)/server: $(SERVER_OBJ)
+	@mkdir -p $(@D)
 	$(CC) $^ -o $@
 
-client: $(CLIENT_OBJ)
+$(BINDIR)/client: $(CLIENT_OBJ)
+	@mkdir -p $(@D)
 	$(CC) $^ -o $@
 
 
